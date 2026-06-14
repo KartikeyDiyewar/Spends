@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
-import type { Profile, Friend, Expense, ExpenseSplit, Settlement, CreateExpenseWithSplitsParams } from '../types/database';
+import type { Profile, Friend, Expense, ExpenseSplit, Settlement, CreateExpenseWithSplitsParams, ResolvedDebt } from '../types/database';
+import { simplifyDebts } from './debt-engine';
 
 // ---------------------------------------------------------
 // PROFILES
@@ -162,6 +163,33 @@ export async function getAllDebtsForUser(userId: string) {
   });
 
   return rawDebts;
+}
+
+export async function getSimplifiedDebtsWithNames(userId: string): Promise<ResolvedDebt[]> {
+  const rawDebts = await getAllDebtsForUser(userId);
+  const simplified = simplifyDebts(rawDebts);
+
+  if (simplified.length === 0) return [];
+
+  // Collect all unique IDs from both sides of every debt in one pass
+  const uniqueIds = [...new Set(simplified.flatMap(d => [d.debtor, d.creditor]))];
+
+  // Single batched query — no N+1
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .in('id', uniqueIds);
+
+  const nameMap = new Map<string, string>();
+  profiles?.forEach(p => {
+    nameMap.set(p.id, p.full_name || 'Unknown');
+  });
+
+  return simplified.map(d => ({
+    ...d,
+    debtorName: nameMap.get(d.debtor) || 'Unknown',
+    creditorName: nameMap.get(d.creditor) || 'Unknown',
+  }));
 }
 
 // ---------------------------------------------------------

@@ -3,14 +3,14 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { simplifyDebts, Debt } from '../../lib/debt-engine';
-import { getAllDebtsForUser } from '../../lib/api';
+import { getSimplifiedDebtsWithNames } from '../../lib/api';
+import type { ResolvedDebt } from '../../types/database';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 export default function Dashboard() {
   const router = useRouter();
   const [netBalance, setNetBalance] = useState(0);
-  const [debts, setDebts] = useState<Debt[]>([]);
+  const [debts, setDebts] = useState<ResolvedDebt[]>([]);
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
@@ -22,16 +22,12 @@ export default function Dashboard() {
   const fetchDebts = async () => {
     if (!session?.user?.id) return;
     const currentUserId = session.user.id;
-    
-    // Fetch REAL data from Supabase
-    const rawDebts = await getAllDebtsForUser(currentUserId);
-    
-    // Simplify debts using the Debt Engine
-    const simplified = simplifyDebts(rawDebts);
-    setDebts(simplified);
+
+    const resolved = await getSimplifiedDebtsWithNames(currentUserId);
+    setDebts(resolved);
 
     let balance = 0;
-    simplified.forEach(d => {
+    resolved.forEach(d => {
       if (d.creditor === currentUserId) balance += d.amount;
       if (d.debtor === currentUserId) balance -= d.amount;
     });
@@ -84,7 +80,7 @@ export default function Dashboard() {
             <Text className="text-white font-bold text-lg mb-3">You are owed</Text>
             {myCredits.map((c, i) => (
               <View key={i} className="flex-row justify-between items-center bg-surface p-4 rounded-xl border border-accent mb-2">
-                <Text className="text-white font-medium">From {c.debtor}</Text>
+                <Text className="text-white font-medium">From {c.debtorName}</Text>
                 <Text className="text-primary font-bold">+${c.amount.toFixed(2)}</Text>
               </View>
             ))}
@@ -96,7 +92,7 @@ export default function Dashboard() {
             <Text className="text-white font-bold text-lg mb-3">You owe</Text>
             {myDebts.map((d, i) => (
               <View key={i} className="flex-row justify-between items-center bg-surface p-4 rounded-xl border border-accent mb-2">
-                <Text className="text-white font-medium">To {d.creditor}</Text>
+                <Text className="text-white font-medium">To {d.creditorName}</Text>
                 <Text className="text-red-500 font-bold">-${d.amount.toFixed(2)}</Text>
               </View>
             ))}
