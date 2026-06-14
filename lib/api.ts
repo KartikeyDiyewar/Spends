@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Profile, Friend, Expense, ExpenseSplit, Settlement } from '../types/database';
+import type { Profile, Friend, Expense, ExpenseSplit, Settlement, CreateExpenseWithSplitsParams } from '../types/database';
 
 // ---------------------------------------------------------
 // PROFILES
@@ -63,33 +63,28 @@ export async function addFriend(userId1: string, userId2: string) {
 // EXPENSES
 // ---------------------------------------------------------
 export async function addExpense(
-  paidBy: string, 
-  amount: number, 
-  description: string, 
-  splits: Omit<ExpenseSplit, 'expense_id'>[]
-) {
-  // Insert expense
-  const { data: expenseData, error: expenseError } = await supabase
-    .from('expenses')
-    .insert([{ paid_by: paidBy, amount, description }])
-    .select()
-    .single();
+  paidBy: string,
+  amount: number,
+  description: string,
+  splits: Omit<ExpenseSplit, 'expense_id'>[],
+  groupId?: string | null
+): Promise<{ data: { id: string } | null; error: Error | null }> {
+  const params: CreateExpenseWithSplitsParams = {
+    p_group_id: groupId ?? null,
+    p_paid_by: paidBy,
+    p_amount: amount,
+    p_description: description,
+    p_splits: splits.map(s => ({ user_id: s.user_id, amount_owed: s.amount_owed })),
+  };
 
-  if (expenseError || !expenseData) {
-    return { error: expenseError };
+  const { data, error } = await supabase.rpc('create_expense_with_splits', params);
+
+  if (error) {
+    console.error('addExpense RPC failed:', error);
+    return { data: null, error };
   }
 
-  // Insert splits
-  const splitsToInsert = splits.map(split => ({
-    ...split,
-    expense_id: expenseData.id,
-  }));
-
-  const { error: splitError } = await supabase
-    .from('expense_splits')
-    .insert(splitsToInsert);
-
-  return { error: splitError, data: expenseData };
+  return { data: { id: data as string }, error: null };
 }
 
 // ---------------------------------------------------------

@@ -165,3 +165,57 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- RPC: create_expense_with_splits
+-- Inserts an expense and all its splits atomically inside a single transaction.
+-- Validates: amount > 0, splits non-empty, split sum == amount (±0.01).
+-- SECURITY INVOKER so the caller's RLS policies on expenses/expense_splits still apply.
+CREATE OR REPLACE FUNCTION public.create_expense_with_splits(
+  p_group_id    uuid    DEFAULT NULL,
+  p_paid_by     uuid,
+  p_amount      numeric,
+  p_description text,
+  p_splits      jsonb   -- [{user_id: uuid, amount_owed: numeric}, ...]
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public
+AS $$
+DECLARE
+  v_expense_id uuid;
+  v_split_sum  numeric;
+BEGIN
+  IF p_amount <= 0 THEN
+    RAISE EXCEPTION 'amount must be greater than 0';
+  END IF;
+
+  IF p_splits IS NULL OR jsonb_array_length(p_splits) = 0 THEN
+    RAISE EXCEPTION 'splits array must not be empty';
+  END IF;
+
+  IF p_paid_by IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'paid_by must match the authenticated user';
+  END IF;
+
+  SELECT COALESCE(SUM((split->>'amount_owed')::numeric), 0)
+  INTO v_split_sum
+  FROM jsonb_array_elements(p_splits) AS split;
+
+  IF ABS(v_split_sum - p_amount) > 0.01 THEN
+    RAISE EXCEPTION 'sum of split amounts (%) does not equal expense amount (%)', v_split_sum, p_amount;
+  END IF;
+
+  INSERT INTO public.expenses (group_id, paid_by, amount, description)
+  VALUES (p_group_id, p_paid_by, p_amount, p_description)
+  RETURNING id INTO v_expense_id;
+
+  INSERT INTO public.expense_splits (expense_id, user_id, amount_owed)
+  SELECT v_expense_id,
+         (split->>'user_id')::uuid,
+         (split->>'amount_owed')::numeric
+  FROM jsonb_array_elements(p_splits) AS split;
+
+  RETURN v_expense_id;
+END;
+$$;

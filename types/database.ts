@@ -47,3 +47,11 @@ export type Settlement = {
   amount: number;
   created_at: string;
 };
+
+export type CreateExpenseWithSplitsParams = {
+  p_group_id: string | null;
+  p_paid_by: string;
+  p_amount: number;
+  p_description: string;
+  p_splits: Array<{ user_id: string; amount_owed: number }>;
+};
