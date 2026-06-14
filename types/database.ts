@@ -55,3 +55,11 @@ export type CreateExpenseWithSplitsParams = {
   p_description: string;
   p_splits: Array<{ user_id: string; amount_owed: number }>;
 };
+
+export type ResolvedDebt = {
+  debtor: string;
+  creditor: string;
+  amount: number;
+  debtorName: string;
+  creditorName: string;
+};
