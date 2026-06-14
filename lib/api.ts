@@ -110,8 +110,14 @@ export async function getAllDebtsForUser(userId: string) {
     `)
     .eq('user_id', userId);
 
-  if (err1 || err2) {
-    console.error('Error fetching debts', err1, err2);
+  // 3. Get all settlements where I am the payer or payee (RLS enforces this server-side too)
+  const { data: settlements, error: err3 } = await supabase
+    .from('settlements')
+    .select('payer_id, payee_id, amount')
+    .or(`payer_id.eq.${userId},payee_id.eq.${userId}`);
+
+  if (err1 || err2 || err3) {
+    console.error('Error fetching debts', err1, err2, err3);
     return [];
   }
 
@@ -138,6 +144,19 @@ export async function getAllDebtsForUser(userId: string) {
         debtor: userId,
         creditor: exp.paid_by,
         amount: split.amount_owed
+      });
+    }
+  });
+
+  // Fold settlements in as reverse debts so they net out against expense debts.
+  // payer → payee means payer paid down debt, represented as debtor=payee, creditor=payer.
+  // The engine's net-balance step cancels these against the original expense debts.
+  settlements?.forEach(s => {
+    if (s.amount > 0) {
+      rawDebts.push({
+        debtor: s.payee_id,
+        creditor: s.payer_id,
+        amount: s.amount,
       });
     }
   });
