@@ -2,10 +2,14 @@
 CREATE TABLE public.profiles (
   id uuid REFERENCES auth.users ON DELETE CASCADE,
   full_name text,
+  email text,
   avatar_url text,
   updated_at timestamp with time zone,
   PRIMARY KEY (id)
 );
+
+-- Index for email lookup (used by searchProfilesByEmail)
+CREATE UNIQUE INDEX profiles_email_idx ON public.profiles (email);
 
 -- Set up Row Level Security (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -156,8 +160,13 @@ CREATE POLICY "Users can insert settlements." ON public.settlements
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, avatar_url)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  INSERT INTO public.profiles (id, full_name, email, avatar_url)
+  VALUES (
+    new.id,
+    new.raw_user_meta_data->>'full_name',
+    new.email,
+    new.raw_user_meta_data->>'avatar_url'
+  );
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
