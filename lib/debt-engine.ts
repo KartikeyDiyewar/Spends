@@ -15,21 +15,18 @@ export type Debt = {
  */
 export function simplifyDebts(transactions: Debt[]): Debt[] {
   // 1. Calculate net balances for every user
-  const balances: Record<string, number> = {};
+  const balances = new Map<string, number>();
 
   for (const { debtor, creditor, amount } of transactions) {
-    if (!balances[debtor]) balances[debtor] = 0;
-    if (!balances[creditor]) balances[creditor] = 0;
-
-    balances[debtor] -= amount; // Debtor's balance decreases
-    balances[creditor] += amount; // Creditor's balance increases
+    balances.set(debtor, (balances.get(debtor) ?? 0) - amount); // Debtor's balance decreases
+    balances.set(creditor, (balances.get(creditor) ?? 0) + amount); // Creditor's balance increases
   }
 
   // 2. Separate into debtors and creditors
   const debtors: { user: string; balance: number }[] = [];
   const creditors: { user: string; balance: number }[] = [];
 
-  for (const [user, balance] of Object.entries(balances)) {
+  for (const [user, balance] of balances) {
     if (balance < -0.01) debtors.push({ user, balance: -balance }); // store as positive debt
     else if (balance > 0.01) creditors.push({ user, balance });
   }

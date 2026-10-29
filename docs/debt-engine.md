@@ -57,11 +57,11 @@ A negative balance means the user owes money overall.
 A balance near zero means they're settled.
 
 ```typescript
-const balances: Record<string, number> = {};
+const balances = new Map<string, number>();
 
 for (const { debtor, creditor, amount } of transactions) {
-  balances[debtor]   = (balances[debtor]   ?? 0) - amount;
-  balances[creditor] = (balances[creditor] ?? 0) + amount;
+  balances.set(debtor, (balances.get(debtor) ?? 0) - amount);
+  balances.set(creditor, (balances.get(creditor) ?? 0) + amount);
 }
 ```
 
@@ -71,7 +71,7 @@ for (const { debtor, creditor, amount } of transactions) {
 const debtors:   { user: string; balance: number }[] = [];
 const creditors: { user: string; balance: number }[] = [];
 
-for (const [user, balance] of Object.entries(balances)) {
+for (const [user, balance] of balances) {
   if (balance < -0.01) debtors.push({ user, balance: -balance }); // positive debt
   else if (balance > 0.01) creditors.push({ user, balance });
 }
