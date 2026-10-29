@@ -104,13 +104,26 @@ export async function getPendingRequests(userId: string): Promise<Array<{ reques
 
   const requesterIds = data.map(f => f.user_id_1);
   const profiles = await getProfilesByIds(requesterIds);
-  const profileMap = new Map(profiles.map(p => [p.id, p]));
+  const profileMap = new Map<string, Profile>();
+  for (let i = 0; i < profiles.length; i++) {
+    const p = profiles[i];
+    profileMap.set(p.id, p);
+  }
 
-  return data.map(f => ({
-    requester: profileMap.get(f.user_id_1)!,
-    user_id_1: f.user_id_1,
-    user_id_2: f.user_id_2,
-  })).filter(r => r.requester != null);
+  const result: Array<{ requester: Profile; user_id_1: string; user_id_2: string }> = [];
+  for (let i = 0; i < data.length; i++) {
+    const f = data[i];
+    const requester = profileMap.get(f.user_id_1);
+    if (requester) {
+      result.push({
+        requester,
+        user_id_1: f.user_id_1,
+        user_id_2: f.user_id_2,
+      });
+    }
+  }
+
+  return result;
 }
 
 export async function acceptFriendRequest(user_id_1: string, user_id_2: string): Promise<boolean> {
