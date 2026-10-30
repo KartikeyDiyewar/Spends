@@ -243,35 +243,33 @@ export async function getExpenseDetail(expenseId: string): Promise<{
 } | null> {
   const { data: expense, error: expError } = await supabase
     .from('expenses')
-    .select('*')
+    .select('*, expense_splits(amount_owed, user_id, profiles(*))')
     .eq('id', expenseId)
     .single();
 
   if (expError || !expense) {
-    console.error('getExpenseDetail expense failed:', expError);
+    console.error('getExpenseDetail failed:', expError);
     return null;
   }
 
-  const { data: splits, error: splitsError } = await supabase
-    .from('expense_splits')
-    .select('user_id, amount_owed')
-    .eq('expense_id', expenseId);
+  const { expense_splits, ...expenseData } = expense as any;
+  const splits = (expense_splits ?? []);
 
-  if (splitsError) {
-    console.error('getExpenseDetail splits failed:', splitsError);
-    return null;
-  }
+  const enrichedSplits = splits.map((s: any) => {
+    // If the profile array is returned from the nested select
+    let profileData: Profile | undefined;
+    if (Array.isArray(s.profiles) && s.profiles.length > 0) {
+      profileData = s.profiles[0];
+    } else if (s.profiles && !Array.isArray(s.profiles)) {
+      profileData = s.profiles;
+    }
+    return {
+      profile: profileData ?? ({ id: s.user_id, full_name: s.user_id, avatar_url: null, updated_at: null } as Profile),
+      amount_owed: s.amount_owed,
+    };
+  });
 
-  const userIds = (splits ?? []).map(s => s.user_id);
-  const profiles = await getProfilesByIds(userIds);
-  const profileMap = new Map(profiles.map(p => [p.id, p]));
-
-  const enrichedSplits = (splits ?? []).map(s => ({
-    profile: profileMap.get(s.user_id) ?? ({ id: s.user_id, full_name: s.user_id, avatar_url: null, updated_at: null } as Profile),
-    amount_owed: s.amount_owed,
-  }));
-
-  return { expense, splits: enrichedSplits };
+  return { expense: expenseData as Expense, splits: enrichedSplits };
 }
 
 // ---------------------------------------------------------
