@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { PostgrestError } from '@supabase/supabase-js';
 import type { Profile, Friend, Group, GroupMember, Expense, ExpenseSplit, Settlement, CreateExpenseWithSplitsParams } from '../types/database';
 
 // ---------------------------------------------------------
@@ -85,7 +86,7 @@ export async function getFriends(userId: string): Promise<Profile[]> {
   return profiles ?? [];
 }
 
-export async function sendFriendRequest(fromUserId: string, toUserId: string): Promise<{ error: any }> {
+export async function sendFriendRequest(fromUserId: string, toUserId: string): Promise<{ error: PostgrestError | null }> {
   const { error } = await supabase
     .from('friends')
     .insert([{ user_id_1: fromUserId, user_id_2: toUserId, status: 'pending' }]);
@@ -218,7 +219,7 @@ export async function addExpense(
   description: string,
   splits: Omit<ExpenseSplit, 'expense_id'>[],
   groupId?: string | null
-): Promise<{ data: { id: string } | null; error: any }> {
+): Promise<{ data: { id: string } | null; error: PostgrestError | null }> {
   const params: CreateExpenseWithSplitsParams = {
     p_group_id: groupId ?? null,
     p_paid_by: paidBy,
@@ -281,7 +282,7 @@ export async function createSettlement(
   payerId: string,
   payeeId: string,
   amount: number
-): Promise<{ data: Settlement | null; error: any }> {
+): Promise<{ data: Settlement | null; error: PostgrestError | null }> {
   const { data, error } = await supabase
     .from('settlements')
     .insert([{ payer_id: payerId, payee_id: payeeId, amount }])
