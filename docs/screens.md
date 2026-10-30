@@ -184,7 +184,7 @@ groupName: string
 
 ### Add Friend Modal
 - Text input for friend's email address.
-- **"Send Request"** button → currently a stub; `addFriend` API call needs wiring here.
+- **"Send Request"** button → currently a stub; `sendFriendRequest` API call needs wiring here.
 - Uses `KeyboardAvoidingView` for iOS/Android compatibility.
 
 ### Add Group Modal
