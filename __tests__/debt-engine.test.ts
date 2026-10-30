@@ -58,12 +58,70 @@ function testMultipleDebtsAndCreditors() {
   assertEqual(result.length, 3, 'Result has 3 transactions for 3 creditors');
 }
 
+function testEmptyTransactions() {
+  const input: Debt[] = [];
+  const result = simplifyDebts(input);
+  assertEqual(result, [], 'Empty array of debts simplifies to empty array');
+}
+
+function testSingleTransaction() {
+  const input: Debt[] = [
+    { debtor: 'A', creditor: 'B', amount: 15 },
+  ];
+  const result = simplifyDebts(input);
+  assertEqual(result, [{ debtor: 'A', creditor: 'B', amount: 15 }], 'Single transaction remains unchanged');
+}
+
+function testMultipleSamePair() {
+  const input: Debt[] = [
+    { debtor: 'A', creditor: 'B', amount: 10 },
+    { debtor: 'A', creditor: 'B', amount: 20 },
+  ];
+  const result = simplifyDebts(input);
+  assertEqual(result, [{ debtor: 'A', creditor: 'B', amount: 30 }], 'Multiple debts between same pair are summed up');
+}
+
+function testDebtCycle() {
+  const input: Debt[] = [
+    { debtor: 'A', creditor: 'B', amount: 10 },
+    { debtor: 'B', creditor: 'C', amount: 10 },
+    { debtor: 'C', creditor: 'A', amount: 10 },
+  ];
+  const result = simplifyDebts(input);
+  assertEqual(result, [], 'Circular debt chain simplifies to empty array');
+}
+
+function testDisjointGroups() {
+  const input: Debt[] = [
+    { debtor: 'A', creditor: 'B', amount: 10 },
+    { debtor: 'B', creditor: 'C', amount: 10 },
+    { debtor: 'X', creditor: 'Y', amount: 20 },
+    { debtor: 'Y', creditor: 'Z', amount: 20 },
+  ];
+  const result = simplifyDebts(input);
+  // Expect A->C 10 and X->Z 20
+  // Note: result order is determined by sorting, so we need to be careful with exact match.
+  // debtors: X (20), A (10)
+  // creditors: Z (20), C (10)
+  // Result should be: X->Z 20, A->C 10
+  const expected = [
+    { debtor: 'X', creditor: 'Z', amount: 20 },
+    { debtor: 'A', creditor: 'C', amount: 10 },
+  ];
+  assertEqual(result, expected, 'Disjoint debt groups simplify correctly');
+}
+
 function runTests() {
   console.log('--- Running Debt Engine Unit Tests ---');
   testSimpleChain();
   testZeroBalance();
   testFloatingPointPrecision();
   testMultipleDebtsAndCreditors();
+  testEmptyTransactions();
+  testSingleTransaction();
+  testMultipleSamePair();
+  testDebtCycle();
+  testDisjointGroups();
   console.log('All unit tests passed successfully!\n');
 }
 
