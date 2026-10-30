@@ -88,8 +88,8 @@ export default function FriendPicker({
     </TouchableOpacity>
   );
 
-  const currentList = showTabs ? (tab === 'friends' ? friends : groups) : (mode === 'groups' ? groups : friends);
-  const isEmpty = currentList.length === 0;
+  const isShowingGroups = showTabs ? tab === 'groups' : mode === 'groups';
+  const isEmpty = isShowingGroups ? groups.length === 0 : friends.length === 0;
 
   return (
     <Modal animationType="slide" transparent visible={visible} onRequestClose={onClose}>
@@ -126,16 +126,23 @@ export default function FriendPicker({
             </View>
           ) : isEmpty ? (
             <View className="items-center py-8 opacity-60">
-              <Text className="text-6xl mb-3">{mode === 'groups' ? '🏠' : '👥'}</Text>
+              <Text className="text-6xl mb-3">{isShowingGroups ? '🏠' : '👥'}</Text>
               <Text className="text-textSecondary">
-                {tab === 'groups' ? 'No groups yet.' : 'No friends yet. Add one in Network!'}
+                {isShowingGroups ? 'No groups yet.' : 'No friends yet. Add one in Network!'}
               </Text>
             </View>
+          ) : isShowingGroups ? (
+            <FlatList
+              data={groups}
+              keyExtractor={item => item.id}
+              renderItem={renderGroup}
+              showsVerticalScrollIndicator={false}
+            />
           ) : (
             <FlatList
-              data={currentList as any[]}
+              data={friends}
               keyExtractor={item => item.id}
-              renderItem={showTabs && tab === 'groups' ? renderGroup as any : renderFriend as any}
+              renderItem={renderFriend}
               showsVerticalScrollIndicator={false}
             />
           )}
