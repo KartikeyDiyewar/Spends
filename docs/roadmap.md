@@ -25,6 +25,7 @@ This document tracks features that are partially implemented or planned, and des
 - Net balance calculated from Supabase data.
 - Debt simplification engine producing minimal transactions.
 - Refetches on tab focus.
+- Profile names are resolved in dashboard lists.
 
 ### ✅ Activity Feed
 - Shows expenses the user paid and expenses they were split into.
@@ -76,15 +77,6 @@ This document tracks features that are partially implemented or planned, and des
 
 **What's missing**:
 - Query the `settlements` table in `getActivityForUser` and merge settlement items into the activity feed with `type: 'settlement'`.
-
----
-
-### 🔧 Profile Name Resolution in Dashboard
-**What exists**: Dashboard shows raw UUIDs for debtors/creditors.
-
-**What's missing**:
-- After calling `simplifyDebts`, collect all unique user IDs and batch-fetch their profiles.
-- Replace UUIDs with `full_name` in the rendered list.
 
 ---
 
@@ -161,13 +153,12 @@ Screens show blank content while data loads. Add skeleton placeholders or a load
 
 For a developer or agent starting from scratch on the remaining features:
 
-1. **Profile name resolution** in dashboard (small, high impact).
-2. **Settlements in balance calculation** in `getAllDebtsForUser`.
-3. **Friend list rendering** on friends screen.
-4. **Friend search by email** (requires schema or edge function decision).
-5. **Friend picker component** (shared between add-expense and settle-up).
-6. **Complete add-expense flow** (equal split first, then exact/percent).
-7. **Complete settle-up flow**.
-8. **Settlements in activity feed**.
-9. **Group creation and expense flow**.
-10. **Push notifications** (requires Supabase Edge Function setup).
+1. **Settlements in balance calculation** in `getAllDebtsForUser`.
+2. **Friend list rendering** on friends screen.
+3. **Friend search by email** (requires schema or edge function decision).
+4. **Friend picker component** (shared between add-expense and settle-up).
+5. **Complete add-expense flow** (equal split first, then exact/percent).
+6. **Complete settle-up flow**.
+7. **Settlements in activity feed**.
+8. **Group creation and expense flow**.
+9. **Push notifications** (requires Supabase Edge Function setup).

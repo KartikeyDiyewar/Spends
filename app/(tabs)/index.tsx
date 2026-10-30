@@ -45,7 +45,7 @@ export default function Dashboard() {
     );
     const profiles = await getProfilesByIds(ids);
     const nameMap: Record<string, string> = {};
-    profiles.forEach(p => { nameMap[p.id] = p.full_name ?? p.id; });
+    profiles.forEach(p => { nameMap[p.id] = p.full_name ?? p.email ?? p.id.slice(0, 8) + '…'; });
     setNames(nameMap);
 
     let balance = 0;
