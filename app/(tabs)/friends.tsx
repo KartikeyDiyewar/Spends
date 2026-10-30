@@ -13,6 +13,7 @@ import {
 } from '../../lib/api';
 import type { Profile, Group } from '../../types/database';
 import FriendPicker from '../../components/FriendPicker';
+import type { Session } from '@supabase/supabase-js';
 
 export default function Friends() {
   const [activeTab, setActiveTab] = useState<'friends' | 'groups'>('friends');
@@ -30,7 +31,7 @@ export default function Friends() {
 
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {

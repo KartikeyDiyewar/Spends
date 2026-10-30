@@ -6,12 +6,13 @@ import { createSettlement } from '../lib/api';
 import { Ionicons } from '@expo/vector-icons';
 import FriendPicker from '../components/FriendPicker';
 import type { Profile } from '../types/database';
+import type { Session } from '@supabase/supabase-js';
 
 export default function SettleUpModal() {
   const router = useRouter();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [selectedPayee, setSelectedPayee] = useState<Profile | null>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
