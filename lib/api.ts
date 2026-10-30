@@ -387,13 +387,33 @@ export async function getActivityForUser(userId: string) {
     });
   });
 
+  // Collect participant IDs from expenses and settlements to resolve names later
+  const participantIds = new Set<string>();
+
   mySplits?.forEach(split => {
     const exp = split.expenses as any;
     if (exp && exp.paid_by !== userId) {
+      participantIds.add(exp.paid_by);
+    }
+  });
+
+  settlements?.forEach(s => {
+    if (s.payer_id !== userId) participantIds.add(s.payer_id);
+    if (s.payee_id !== userId) participantIds.add(s.payee_id);
+  });
+
+  const uniqueIds = Array.from(participantIds);
+  const profiles = uniqueIds.length > 0 ? await getProfilesByIds(uniqueIds) : [];
+  const nameMap = new Map(profiles.map(p => [p.id, p.full_name ?? p.id]));
+
+  mySplits?.forEach(split => {
+    const exp = split.expenses as any;
+    if (exp && exp.paid_by !== userId) {
+      const payerName = nameMap.get(exp.paid_by) ?? 'Someone';
       activityMap.set(exp.id, {
         id: exp.id,
         type: 'expense',
-        text: `Someone added "${exp.description}"`,
+        text: `${payerName} added "${exp.description}"`,
         amount: `$${Number(exp.amount).toFixed(2)}`,
         date: new Date(exp.created_at).toLocaleDateString(),
         timestamp: new Date(exp.created_at).getTime(),
@@ -401,17 +421,6 @@ export async function getActivityForUser(userId: string) {
       });
     }
   });
-
-  // Collect participant IDs from settlements to resolve names later
-  const settlementParticipantIds: string[] = [];
-  settlements?.forEach(s => {
-    if (s.payer_id !== userId) settlementParticipantIds.push(s.payer_id);
-    if (s.payee_id !== userId) settlementParticipantIds.push(s.payee_id);
-  });
-
-  const uniqueIds = Array.from(new Set(settlementParticipantIds));
-  const profiles = uniqueIds.length > 0 ? await getProfilesByIds(uniqueIds) : [];
-  const nameMap = new Map(profiles.map(p => [p.id, p.full_name ?? p.id]));
 
   settlements?.forEach(s => {
     if (!s) return;

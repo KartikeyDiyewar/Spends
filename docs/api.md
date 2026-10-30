@@ -158,7 +158,7 @@ const activities = await getActivityForUser(session.user.id);
 
 **Text generation**:
 - Expenses you paid → `"You paid for "${description}"`
-- Expenses others paid → `"Someone added "${description}"` (TODO: resolve payer name)
+- Expenses others paid → `"${payerName} added "${description}"`
 
 **What's missing**: Settlements are not yet included in the activity feed (the `settlements` table is not queried here).
 
