@@ -47,19 +47,6 @@ export async function searchProfilesByEmail(email: string): Promise<Profile | nu
   return data ?? null;
 }
 
-export async function updateProfile(userId: string, updates: { full_name?: string }): Promise<boolean> {
-  const { error } = await supabase
-    .from('profiles')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', userId);
-
-  if (error) {
-    console.error('updateProfile failed:', error);
-    return false;
-  }
-  return true;
-}
-
 // ---------------------------------------------------------
 // FRIENDS
 // ---------------------------------------------------------
