@@ -6,6 +6,7 @@ import { addExpense, getGroupMembers } from '../lib/api';
 import { Ionicons } from '@expo/vector-icons';
 import FriendPicker from '../components/FriendPicker';
 import type { Profile, Group } from '../types/database';
+import type { Session } from '@supabase/supabase-js';
 
 type SplitType = 'EQUAL' | 'EXACT' | 'PERCENT';
 
@@ -15,7 +16,7 @@ export default function AddExpenseModal() {
   const [amount, setAmount] = useState('');
   const [splitType, setSplitType] = useState<SplitType>('EQUAL');
   const [loading, setLoading] = useState(false);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Selected participant(s)
@@ -62,7 +63,8 @@ export default function AddExpenseModal() {
   };
 
   const buildSplits = (numericAmount: number): Array<{ user_id: string; amount_owed: number }> | null => {
-    const payer = session.user.id;
+    const payer = session?.user?.id;
+    if (!payer) return null;
 
     if (participants.length === 0) {
       // If no participant selected, entire amount is on the payer

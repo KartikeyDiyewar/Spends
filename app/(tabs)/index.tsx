@@ -6,13 +6,14 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { simplifyDebts, Debt } from '../../lib/debt-engine';
 import { getAllDebtsForUser, getProfilesByIds } from '../../lib/api';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import type { Session } from '@supabase/supabase-js';
 
 export default function Dashboard() {
   const router = useRouter();
   const [netBalance, setNetBalance] = useState(0);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
