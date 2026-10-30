@@ -141,11 +141,11 @@ getAllDebtsForUser(userId)      ← lib/api.ts
 
 ### "You are owed" list
 - Debts where `creditor === currentUserId`.
-- Shows debtor user ID (TODO: resolve to name) and amount in green.
+- Shows debtor user name and amount in green.
 
 ### "You owe" list
 - Debts where `debtor === currentUserId`.
-- Shows creditor user ID (TODO: resolve to name) and amount in red.
+- Shows creditor user name and amount in red.
 
 ### Floating Action Button (FAB)
 - Positioned `absolute bottom-6 right-6`.

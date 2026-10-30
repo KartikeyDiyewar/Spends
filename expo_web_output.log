@@ -1,0 +1,21 @@
+
+> spends@1.0.0 web
+> expo start --web
+
+env: load .env
+env: export EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY
+Starting project at /app
+Starting Metro Bundler
+The following packages should be updated for best compatibility with the installed expo version:
+  expo@54.0.35 - expected version: ~54.0.37
+  expo-constants@18.0.13 - expected version: ~18.0.14
+  react-native-reanimated@3.16.7 - expected version: ~4.1.1
+Your project may not work correctly until you install the expected versions of the packages.
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Web node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 64.0% ( 74/247)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 64.0% (342/543)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 70.5% (719/859)
+Web Bundled 13828ms node_modules/expo-router/entry.js (1111 modules)
+ LOG  [web] Logs will appear in the browser console
