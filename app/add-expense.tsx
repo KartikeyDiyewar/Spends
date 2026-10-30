@@ -158,6 +158,18 @@ export default function AddExpenseModal() {
 
   const numericAmount = parseFloat(amount) || 0;
 
+  const exactTotalOwedByOthers = participants.reduce(
+    (sum, p) => sum + (parseFloat(exactAmounts[p.id] ?? '0') || 0),
+    0
+  );
+  const payerExactRemainder = Math.max(0, numericAmount - exactTotalOwedByOthers);
+
+  const percentTotalOwedByOthers = participants.reduce(
+    (sum, p) => sum + (parseFloat(percentAmounts[p.id] ?? '0') || 0),
+    0
+  );
+  const payerPercentRemainder = Math.max(0, 100 - percentTotalOwedByOthers);
+
   return (
     <View className="flex-1 bg-background p-6">
       <View className="flex-row justify-between items-center mb-6">
@@ -293,9 +305,8 @@ export default function AddExpenseModal() {
                     <Text className="text-white ml-2 flex-1">You</Text>
                     <Text className="text-primary font-bold">
                       {splitType === 'EXACT'
-                        ? `$${Math.max(0, numericAmount - participants.reduce((s, p) => s + (parseFloat(exactAmounts[p.id] ?? '0') || 0), 0)).toFixed(2)}`
-                        : `${Math.max(0, 100 - participants.reduce((s, p) => s + (parseFloat(percentAmounts[p.id] ?? '0') || 0), 0)).toFixed(1)}%`
-                      }
+                        ? `$${payerExactRemainder.toFixed(2)}`
+                        : `${payerPercentRemainder.toFixed(1)}%`}
                     </Text>
                   </View>
                 </View>
