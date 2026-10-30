@@ -207,6 +207,14 @@ BEGIN
     RAISE EXCEPTION 'paid_by must match the authenticated user';
   END IF;
 
+  IF EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(p_splits) AS split
+    WHERE (split->>'amount_owed')::numeric < 0
+  ) THEN
+    RAISE EXCEPTION 'amount_owed cannot be negative';
+  END IF;
+
   SELECT COALESCE(SUM((split->>'amount_owed')::numeric), 0)
   INTO v_split_sum
   FROM jsonb_array_elements(p_splits) AS split;
