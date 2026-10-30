@@ -61,16 +61,30 @@ const friends = await getFriends(session.user.id);
 
 ---
 
-### `addFriend(userId1: string, userId2: string): Promise<PostgrestError | null>`
+### `sendFriendRequest(fromUserId: string, toUserId: string): Promise<{ error: any }>`
 
-Inserts a friendship row with `status: 'accepted'` immediately (no pending flow).
+Inserts a friendship row with `status: 'pending'`.
 
 ```typescript
-const error = await addFriend(currentUserId, friendId);
-if (error) console.error('Could not add friend:', error);
+const { error } = await sendFriendRequest(currentUserId, friendId);
+if (error) console.error('Could not send friend request:', error);
 ```
 
-**Note**: The current implementation skips the pending/accept handshake — both users are immediately friends. The `status: 'pending'` flow is not yet wired up in the UI.
+**Note**: This function initiates the friend request handshake. The request must be accepted using `acceptFriendRequest` for the friendship to become active.
+
+---
+
+### `acceptFriendRequest(user_id_1: string, user_id_2: string): Promise<boolean>`
+
+Updates a pending friendship row to `status: 'accepted'`.
+
+```typescript
+const success = await acceptFriendRequest(requesterId, currentUserId);
+if (!success) console.error('Could not accept friend request');
+```
+
+**Implementation**:
+Updates the `friends` table where `user_id_1 = requesterId` and `user_id_2 = currentUserId` and sets `status = 'accepted'`.
 
 ---
 

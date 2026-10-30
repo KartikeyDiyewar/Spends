@@ -140,13 +140,6 @@ export async function acceptFriendRequest(user_id_1: string, user_id_2: string):
   return true;
 }
 
-export async function addFriend(userId1: string, userId2: string) {
-  const { error } = await supabase
-    .from('friends')
-    .insert([{ user_id_1: userId1, user_id_2: userId2, status: 'accepted' }]);
-  return error;
-}
-
 // ---------------------------------------------------------
 // GROUPS
 // ---------------------------------------------------------

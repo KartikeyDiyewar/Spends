@@ -64,7 +64,7 @@ This document tracks features that are partially implemented or planned, and des
 **What's missing**:
 1. **Friend search by email** — `searchProfilesByEmail` in `lib/api.ts` is a stub. Implement it using a Supabase Edge Function or by adding `email` to the `profiles` table.
 2. **Render friend list** — call `getFriends(userId)` and render the results.
-3. **Send friend request / accept** — wire up the "Send Request" button to call `addFriend`.
+3. **Send friend request / accept** — wire up the "Send Request" button to call `sendFriendRequest`.
 4. **Pending requests** — query `friends WHERE user_id_2 = userId AND status = 'pending'` and show accept/reject buttons.
 5. **Create Group** — call Supabase to insert into `groups` and `group_members`.
 6. **Render group list** — query groups the user belongs to and display them.
